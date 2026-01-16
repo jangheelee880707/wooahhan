@@ -2,9 +2,26 @@
 import { GoogleGenAI } from "@google/genai";
 import { BeefCut, MarblingLevel, GenerationConfig } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization to prevent crash on load if API key is missing
+const getAiClient = () => {
+  // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+  // Assume this variable is pre-configured, valid, and accessible.
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    console.warn("API Key is missing. AI features will not work.");
+    // Return a dummy object or throw a handled error later
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const generateHanwooImage = async (config: GenerationConfig): Promise<string> => {
+  const ai = getAiClient();
+  if (!ai) {
+    throw new Error("API Key not configured");
+  }
+
   let cutDescription = config.cut;
   let marblingPrompt = "";
   let composition = "Single premium cut, hero shot.";
